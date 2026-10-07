@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+runs/
+.env
+*.env.local
+config.local.json
+# Local historical evidence; not part of the portable GitHub package.
+papers/
+agents_archive/
+docs/legacy-lab.md
+metrics.md
+tools/

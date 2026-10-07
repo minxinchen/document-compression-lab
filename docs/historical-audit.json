@@ -1,0 +1,191 @@
+{
+  "schema": "historical-audit-v1",
+  "validation": "file_counts_and_log_consistency_only",
+  "files": 10,
+  "paired_files": 10,
+  "source_chars": 527432,
+  "draft_chars": 334820,
+  "weighted_retention_ratio": 0.6348116913649532,
+  "issue_entries": 10,
+  "files_with_warnings": 3,
+  "rows": [
+    {
+      "file": "01_fecal_microbiota_transplantation_and_akkermansia_muciniphila.md",
+      "warnings": [],
+      "source_chars": 49633,
+      "draft_chars": 31756,
+      "source_sha256": "4d1b940c11f683750f9acf7b1824be23c54373bf21d02e0c4f75b94b3ced9923",
+      "draft_sha256": "6576af41e7bec47a8782ea3493ab5088a8894ea2103727949e0f7dfd62dbc49c",
+      "ratio": 0.6398162512844277,
+      "historical_claims": {
+        "raw_chars": "49633",
+        "final_compressed_chars": "31756",
+        "total_iterations": "3",
+        "final_status": "pass"
+      },
+      "issue_entries": 9,
+      "validation_status": "historical_record_only"
+    },
+    {
+      "file": "02_the_gut-brain_axis_in_alzheimers_from_microbiota_genetics_to.md",
+      "warnings": [
+        "final_compressed_chars_mismatch",
+        "review_carried_from_prior_iteration"
+      ],
+      "source_chars": 45934,
+      "draft_chars": 28598,
+      "source_sha256": "64b56cf200bf9d71348cd3a831e6cfabf0ab5813462bb81875c81a7ac3d637f2",
+      "draft_sha256": "cd044af4b3209849214e8d49689699104a89de721f4630ae54e0c492220dc2e9",
+      "ratio": 0.6225889319458353,
+      "historical_claims": {
+        "raw_chars": "45934",
+        "final_compressed_chars": "28784",
+        "total_iterations": "2",
+        "final_status": "pass"
+      },
+      "issue_entries": 1,
+      "validation_status": "historical_record_only"
+    },
+    {
+      "file": "03_role_of_gut_microbiota_and_its_functional_products_in_prenat.md",
+      "warnings": [],
+      "source_chars": 47741,
+      "draft_chars": 31250,
+      "source_sha256": "12955e2266aa3a9bcbf16ce2e9ff3490f1c7191dec97c5b7159e30a729eb1b3f",
+      "draft_sha256": "fa8a4edad6b3063a8b957fb18983a655b467215b5a59ec63a8718e955960cfc3",
+      "ratio": 0.6545736369158585,
+      "historical_claims": {
+        "raw_chars": "47741",
+        "final_compressed_chars": "31250",
+        "total_iterations": "1",
+        "final_status": "pass"
+      },
+      "issue_entries": 0,
+      "validation_status": "historical_record_only"
+    },
+    {
+      "file": "04_novel_insights_into_the_association_between_parkinsons_disea.md",
+      "warnings": [],
+      "source_chars": 52518,
+      "draft_chars": 32777,
+      "source_sha256": "617c16535d9c4c94cc761910172ab780fe0ddf475ec92d1f679460e2fb8a7bc6",
+      "draft_sha256": "fbf4a99c7a9c63e903cabcb4245dee51fc2ea50b464667e89fbdcadf6ec917a8",
+      "ratio": 0.6241098290110058,
+      "historical_claims": {
+        "raw_chars": "52518",
+        "final_compressed_chars": "32777",
+        "total_iterations": "1",
+        "final_status": "pass"
+      },
+      "issue_entries": 0,
+      "validation_status": "historical_record_only"
+    },
+    {
+      "file": "05_β-sitosterol_β-d-glucoside_bssg_triggers_intestinal_inflamma.md",
+      "warnings": [],
+      "source_chars": 65231,
+      "draft_chars": 40704,
+      "source_sha256": "8526fb4c9171b79a9adac320326b446e88f11a9b9152f35de6fa5266a3fa1264",
+      "draft_sha256": "c576fc81bc433f6e489f7ae685718ecef928f468cc3cdd67999a4ad702e9b963",
+      "ratio": 0.6239977924606399,
+      "historical_claims": {
+        "raw_chars": "65231",
+        "final_compressed_chars": "40704",
+        "total_iterations": "1",
+        "final_status": "pass"
+      },
+      "issue_entries": 0,
+      "validation_status": "historical_record_only"
+    },
+    {
+      "file": "06_short-chain_fatty_acids_are_a_key_mediator_of_gut_microbial.md",
+      "warnings": [],
+      "source_chars": 57206,
+      "draft_chars": 37072,
+      "source_sha256": "fcf91cc0e0c434e03a6df151abadbe32afa52bab4772b4abd0d62548848856fe",
+      "draft_sha256": "6944107398b41a7a7a4ea9ec86023981f1017dac284244f0a78879b007a117a4",
+      "ratio": 0.648043911477817,
+      "historical_claims": {
+        "raw_chars": "57206",
+        "final_compressed_chars": "37072",
+        "total_iterations": "1",
+        "final_status": "pass"
+      },
+      "issue_entries": 0,
+      "validation_status": "historical_record_only"
+    },
+    {
+      "file": "07_neurobiological_effects_of_microbial_treatments_within_psych.md",
+      "warnings": [],
+      "source_chars": 40526,
+      "draft_chars": 26246,
+      "source_sha256": "30f78a3abd01c97b7f572ff0d457eaf08786501e4c001a3e8b629e06b195d395",
+      "draft_sha256": "fd065fa5b2fd17f730870acfa34d88d3a2750e090063cd39bb35b281d112717b",
+      "ratio": 0.6476336179242955,
+      "historical_claims": {
+        "raw_chars": "40526",
+        "final_compressed_chars": "26246",
+        "total_iterations": "1",
+        "final_status": "pass"
+      },
+      "issue_entries": 0,
+      "validation_status": "historical_record_only"
+    },
+    {
+      "file": "08_dietary_polyphenols_in_noncommunicable_chronic_diseases_neur.md",
+      "warnings": [
+        "final_compressed_chars_mismatch"
+      ],
+      "source_chars": 38244,
+      "draft_chars": 25411,
+      "source_sha256": "f3c9aeb747c0f8e59225171f087f751c56c74764d47395c59939ae0c91803a18",
+      "draft_sha256": "b00461edb621fa0e862253c1e2cd47aaee2a9a6e66ecedac639b2a065e966339",
+      "ratio": 0.664444095805878,
+      "historical_claims": {
+        "raw_chars": "38244",
+        "final_compressed_chars": "25409",
+        "total_iterations": "1",
+        "final_status": "pass"
+      },
+      "issue_entries": 0,
+      "validation_status": "historical_record_only"
+    },
+    {
+      "file": "09_tannic_acid_attenuates_glyphosate-based_herbicide-induced_do.md",
+      "warnings": [],
+      "source_chars": 48954,
+      "draft_chars": 30362,
+      "source_sha256": "39de99915e48fe6d8d4a7b5c29aa50c652e005f13862f272f30e1ea70da5dac4",
+      "draft_sha256": "d0497da6227e44842b92f08a114b5a9b1aa503722dfcd9ba7210708bfceb1bca",
+      "ratio": 0.6202148956162928,
+      "historical_claims": {
+        "raw_chars": "48954",
+        "final_compressed_chars": "30362",
+        "total_iterations": "1",
+        "final_status": "pass"
+      },
+      "issue_entries": 0,
+      "validation_status": "historical_record_only"
+    },
+    {
+      "file": "10_bacterial_extracellular_vesicles_in_aging_mechanisms_and_the.md",
+      "warnings": [
+        "raw_chars_mismatch",
+        "final_compressed_chars_mismatch"
+      ],
+      "source_chars": 81445,
+      "draft_chars": 50644,
+      "source_sha256": "e28fae73973ccb526bc1f87c73878e9b355f25ff5c19d3ea8a94d9e210c02842",
+      "draft_sha256": "704ed7d7ab8acf9f59525b53ca011b5d1f5f95708d92cb213510771f14ab4c26",
+      "ratio": 0.6218184050586285,
+      "historical_claims": {
+        "raw_chars": "81862",
+        "final_compressed_chars": "50891",
+        "total_iterations": "1",
+        "final_status": "pass"
+      },
+      "issue_entries": 0,
+      "validation_status": "historical_record_only"
+    }
+  ]
+}

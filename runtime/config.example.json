@@ -1,0 +1,10 @@
+{
+  "label": "chat-completions-adapter",
+  "execution_kind": "live",
+  "timeout_seconds": 150,
+  "commands": {
+    "writer": ["python3", "runtime/http_adapter.py"],
+    "facts": ["python3", "runtime/http_adapter.py"],
+    "argument": ["python3", "runtime/http_adapter.py"]
+  }
+}
