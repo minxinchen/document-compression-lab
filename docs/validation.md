@@ -57,3 +57,7 @@ HTTP 測試使用固定回應，**不是 LLM 推論或供應商相容性測試**
 - 原文內的指令以提示詞限制處理，尚未進行 adversarial prompt-injection benchmark。
 
 下一步只驗證本專案的真實推論與品質，不同時開展其他作品。
+
+## 2026-10-08 Claude adapter 增補
+
+新增四項 CLI 邊界測試：既有角色正文與模型別名載入、驗證失敗不得產稿、缺少 structured output 拒絕、兩個 reviewer 角色映射。目前合計 **25 項通過**，新增測試皆使用 mock subprocess。真實 Claude 嘗試被 OAuth 401 阻擋，並非模型品質驗證通過。
