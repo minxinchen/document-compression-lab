@@ -61,3 +61,9 @@ HTTP 測試使用固定回應，**不是 LLM 推論或供應商相容性測試**
 ## 2026-10-08 Claude adapter 增補
 
 新增四項 CLI 邊界測試：既有角色正文與模型別名載入、驗證失敗不得產稿、缺少 structured output 拒絕、兩個 reviewer 角色映射。目前合計 **25 項通過**，新增測試皆使用 mock subprocess。真實 Claude 嘗試被 OAuth 401 阻擋，並非模型品質驗證通過。
+
+## Codex 角色移植實測增補
+
+依 Nio 澄清，角色規準由 Codex agents 執行，不依賴 Claude CLI。新增 handoff adapter 六項測試：原子回覆、逾時保留請求、禁止 slot 重用、身份欄位驗證、錯稿指紋拒絕、晚到回覆不得完成新 inbox；目前 **31 項測試通過**。另完成一篇實際 agent 壓縮：19,377→13,143 字元，1 輪雙 reviewer 通過。此實測與 mock 測試分開記錄，詳見 [完整實驗報告](experiments/2026-10-08-openai-harness.md)。
+
+最終獨立 reviewer 核對報告、結果 JSON 與本機稿件，確認數據與指紋一致；依其意見釐清主線派工／程序轉接及角色指紋另行核對的責任，並補上兩項 handoff 回歸測試。

@@ -2,7 +2,7 @@
 
 把長文壓縮成較短的文件，並保存「哪一版稿件、由誰審查、提出什麼問題、為什麼停止」的完整執行紀錄。
 
-**狀態：本機 v0.1。** macOS／Linux 上的 Python 執行流程、合成示範與回歸測試已實作；新 runtime 的真實模型品質尚未驗證。既有十篇文獻是歷史實驗，不代表新版成效。
+**狀態：本機 v0.1。** macOS／Linux 上的 Python 執行流程、合成示範與回歸測試已實作；已完成一篇 Codex agents 實測，尚無人工金標準或跨文章成效結論。既有十篇文獻是歷史實驗，不代表新版成效。
 
 作者：Nio (Master)。原始任務設計與實驗來自 Nio 與 Claude Code 的協作；本版 Python 工程化由 Codex 協作完成。此處「訓練」指角色、提示詞、評分規準與修正流程的校正，未進行模型權重微調。
 
@@ -34,7 +34,7 @@ flowchart TD
     FB --> W
 ```
 
-兩位 reviewer 在各自程序中並行執行，只收到同一份原文與當輪稿件，不取得彼此的意見或 writer 的自評。這是輸入隔離，不保證模型之間沒有共同偏誤。圖中所有節點都對應 [core.py](runtime/core.py) 的實作。
+兩位 reviewer 作為獨立任務並行執行，只收到同一份原文與當輪稿件，不取得彼此的意見或 writer 的自評。使用 handoff 時，Codex agents 由主線派工，Python 子程序只負責轉接與等待。這是輸入隔離，不保證模型之間沒有共同偏誤。圖中所有節點都對應 [core.py](runtime/core.py) 的實作。
 
 ## 心智圖｜Responsibility map
 
@@ -78,6 +78,7 @@ mindmap
 | Chat Completions adapter | 對話 API 轉接器 | 選配模型連線，使用 model/messages 基本格式 | 本機 HTTP 契約測試；真實供應商待測 |
 | unittest | 自動化測試框架 | 停止條件、舊 verdict、錯誤、併行與輸入隔離 | 已測試 |
 | Mermaid | 文字式圖表 | GitHub 可編輯的流程圖與心智圖 | 已加入 |
+| Codex subagents / File handoff | 分工代理／檔案交接 | 移植既有角色規準，由主線派工、Python 驗證 | 單篇實測完成 |
 | Claude Code / Sonnet / Haiku | 歷史代理執行平台與模型 | 原有十篇實驗的 writer／reviewer 分工 | 歷史資料，非新版預設依賴 |
 
 ## 五分鐘試跑：不需要 API key
@@ -128,12 +129,13 @@ API 收到的是原文全文。選擇雲端 endpoint 即代表資料會送往該
 
 ## 2026-10-08：既有 Claude 壓縮大師實測
 
-已選定 OpenAI 2026 年的工程文章並建立 `claude_adapter.py`，載入使用者既有角色設定。首次實測被 Claude OAuth 401 阻擋，完成 0 輪；不能宣稱取得壓縮品質結果。詳見 [實驗登錄與執行紀錄](docs/experiments/2026-10-08-openai-harness.md)。
+沿用既有 Claude 壓縮大師與雙 reviewer 規準，由三個 Codex agents 實際執行。OpenAI 技術文章從 **19,377 縮至 13,143 字元（縮短 32.17%）**，兩位 reviewer 對同版稿件通過，完成 1 輪。這是單篇、無控制組的實測，不能當成普遍保真證據。詳見 [研究方法、結果與限制](docs/experiments/2026-10-08-openai-harness.md) 與 [結果 JSON](docs/experiments/2026-10-08-openai-harness-results.json)。
 
 ## 驗收與下一個實驗
 
 - 已驗證：同版雙審查、單一 reviewer 否決、迭代上限、錯誤停止、歷史字數核對、子程序合成示範。
-- 待驗證：真實 endpoint／模型相容性、長文時延與成本、人工標註的失真率。
+- 已完成實測：三個 Codex agents 處理一篇工程文章，1 輪雙審查通過。
+- 待驗證：HTTP endpoint／模型相容性、多篇時延與成本、人工標註的失真率。
 - 下一個品質實驗：在未參與提示詞校正的文件上，比較單次壓縮與雙 reviewer 迴圈；固定模型、文件與參數，人工評分限定詞、數字意義、論證關係，記錄成本及失敗。尚未執行，不預填成效。
 
 [驗收範圍與變更說明](docs/validation.md) · [資料契約](docs/protocol.md)

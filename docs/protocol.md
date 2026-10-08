@@ -67,3 +67,25 @@ pass 的 issues 必須為空；revise 至少有一筆。每筆需具備非空欄
 `http_adapter.py` 使用 stateless Chat Completions，將回應绑定至當次請求；writer 與兩位 reviewer 的 model ID 分開設定。只能從模型回覆解析 JSON 內容，`finish_reason` 必須是 `stop`；超出 context window 或截斷不得視為成功。API token 僅從環境讀取，禁止 URL 內嵌憑證或跟隨 redirect。
 
 三個角色的 prompt 內建於 adapter，版本為 `compression-portable-v1`，這是工程化後的新提示詞，不等於歷史 Claude compressor v2。當前不提供分塊壓縮、斷點續跑、人工評分或 ablation runner。
+
+## Agent session handoff｜對話代理交接
+
+`handoff_adapter.py` 讓現有 agent session 使用相同 runtime 契約，不需要呼叫 Claude CLI 或另外取得模型 API key。它只負責檔案交接，**不會自行啟動或排程模型**。
+
+1. runtime 將工作寫入新的 `NN-role/request.json`。
+2. 外部操作者派相應 agent 讀取該請求與角色設定；reviewer 只讀自己被指派的請求。
+3. agent 用暫存檔＋原子 replace 寫入同目錄的 `response.json`。
+4. adapter 驗證來源、輪次、稿件及資料格式，回傳 runtime。無回覆則逾時停止。
+
+每個 run 必須使用新的 inbox；舊 slot 不重用。共享檔案系統並非存取隔離沙箱，reviewer 的互不參考是派工約束；hash 是版本一致性檢查，不證明內容正確性。稿件完整性與最終狀態仍由 core 驗證。
+
+```mermaid
+flowchart LR
+    R["Runtime 流程控制"] --> Q["Request 檔案交接"]
+    Q --> A["Codex agent 依角色執行"]
+    A --> J["Response 原子寫入結果"]
+    J --> V["Validator 來源與版本驗證"]
+    V --> R
+```
+
+外部 session 的模型名稱、費用與 token 數若沒有 API 回傳，就標示未取得，不能從模型別名或 CLI 計價推估成本。

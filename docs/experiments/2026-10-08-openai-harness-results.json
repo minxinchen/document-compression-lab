@@ -1,0 +1,86 @@
+{
+  "schema": "live-experiment-summary-v1",
+  "experiment_date": "2026-10-08",
+  "source": {
+    "url": "https://openai.com/index/harness-engineering/",
+    "title": "Harness engineering: leveraging Codex in an agent-first world",
+    "author": "Ryan Lopopolo",
+    "published": "2026-02-11",
+    "retrieved": "2026-10-08",
+    "type": "engineering article, not academic paper",
+    "extraction": "Web readable text lines 47-313 plus title; remove navigation, citation wrappers and code-block line numbers; diagrams excluded; preserve body and directory code block",
+    "source_chars": 19377,
+    "source_sha256": "fef68195ae2371054b1e57edcebfb1bc0c5abaa10bf3dd7ef2bbf4c896059ec4"
+  },
+  "execution_kind": "live-agent-handoff",
+  "role_source": "existing Claude role definitions; executed by separate Codex agents",
+  "profiles": {
+    "writer": {
+      "original_role": "compressor.md",
+      "sha256": "62a4cbb684fcf2b237d186fcbf27d2b636570a4d9193cf011c5dd60c86414cd7",
+      "executor": "Codex subagent",
+      "exact_model_id": null
+    },
+    "facts": {
+      "original_role": "compression-reviewer-haiku.md",
+      "sha256": "40d107317776cf5a71d69d18344c2a00af712b16c0e608ee000d979b69e15c54",
+      "executor": "Codex subagent",
+      "exact_model_id": null
+    },
+    "argument": {
+      "original_role": "compression-reviewer-sonnet.md",
+      "sha256": "f0f81b7060e6c29ed649fac8913477fa3deef95d31dc1877ffb0125f8beaeeb7",
+      "executor": "Codex subagent",
+      "exact_model_id": null
+    }
+  },
+  "target_retention_ratio": 0.65,
+  "tolerance_absolute": 0.03,
+  "max_iterations": 5,
+  "status": "review_pass",
+  "source_chars": 19377,
+  "candidate_chars": 13143,
+  "retention_ratio": 0.6782783712649016,
+  "reduction_ratio": 0.32172162873509835,
+  "candidate_sha256": "00cb663048373feb7963c880ce4a4d083fb7300926aee757d76ae170bf95a5de",
+  "heading_count": 11,
+  "heading_order_equal": true,
+  "rounds": [
+    {
+      "iteration": 1,
+      "draft_chars": 13143,
+      "draft_sha256": "00cb663048373feb7963c880ce4a4d083fb7300926aee757d76ae170bf95a5de",
+      "within_tolerance": true,
+      "reviewers": {
+        "facts": {
+          "verdict": "pass",
+          "issue_count": 0,
+          "profile_sha256": "40d107317776cf5a71d69d18344c2a00af712b16c0e608ee000d979b69e15c54"
+        },
+        "argument": {
+          "verdict": "pass",
+          "issue_count": 0,
+          "profile_sha256": "f0f81b7060e6c29ed649fac8913477fa3deef95d31dc1877ffb0125f8beaeeb7"
+        }
+      }
+    }
+  ],
+  "model_tokens": null,
+  "model_cost": null,
+  "model_inference_seconds": null,
+  "limitations": [
+    "one article, no control group",
+    "reviewers share model family and rubric ancestry",
+    "no human gold standard",
+    "agent task delivery was manually coordinated",
+    "char reduction is not token or cost reduction",
+    "full article and drafts retained locally only"
+  ],
+  "predeclared_spot_checks": {
+    "count": 10,
+    "assessor": "Codex primary agent",
+    "outcome": "no omissions identified in the selected checks",
+    "human_validated": false,
+    "complete_semantic_metric": false
+  }
+}
