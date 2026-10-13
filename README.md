@@ -1,141 +1,110 @@
-# Document Compression Lab｜長文壓縮與雙重審查
+# 壓縮大師：Agent 設計與訓練案例
 
-把長文壓縮成較短的文件，並保存「哪一版稿件、由誰審查、提出什麼問題、為什麼停止」的完整執行紀錄。
+**用實際壓縮錯誤改進 agent：讓 writer 寫稿，兩位 reviewer 分別查事實與論證，再把失敗整理成下一版規則。**
 
-**狀態：本機 v0.1。** macOS／Linux 上的 Python 執行流程、合成示範與回歸測試已實作；已完成一篇 Codex agents 實測，尚無人工金標準或跨文章成效結論。既有十篇文獻是歷史實驗，不代表新版成效。
+應用情境是長文閱讀：希望篇幅縮短，又保留數字的意義、因果條件與作者的論證。本專案以文件壓縮為實驗任務，展示如何定義 agent 職責、設計審查回饋，以及迭代角色規則。
 
-作者：Nio (Master)。原始任務設計與實驗來自 Nio 與 Claude Code 的協作；本版 Python 工程化由 Codex 協作完成。此處「訓練」指角色、提示詞、評分規準與修正流程的校正，未進行模型權重微調。
+這裡的「訓練」是**角色、提示詞、評分規準與工作流程的校正**，未進行模型權重微調。已有歷史試跑及一次跨主題移植實測；尚未證明 v2 比 v1 更有效。
 
-## 要解決的問題
+## 一個案例：補回論證，卻寫得太肯定
 
-篇幅變短容易量測，內容是否失真卻不能只看字數。原有實驗曾在補回因果論述後，出現原文沒有的強調語氣；另一份紀錄則把前一版 reviewer 的通過結果沿用到修改後的稿件。
+以下根據第一篇文獻的歷史審查紀錄整理，並非本次重新執行：
 
-本專案的目標是建立**可重跑、可追溯的壓縮審查流程**。它讓不同 reviewer 分別檢查事實與論證，並將每次判斷綁定到實際稿件。兩位 reviewer 同意不代表客觀無誤，仍需人工標準與獨立資料驗證。
+| 步驟 | 發生什麼事 | 對 agent 設計的意義 |
+|---|---|---|
+| 第一稿 | 壓縮時弱化了不同實驗條件下的效果差異；論證 reviewer 要求補回對比 | 「不要失真」需要拆成可檢查項，例如保留對比兩側與適用條件 |
+| 第二稿 | writer 補回關係，卻使用了過度確定的措辭；事實 reviewer 要求修正 | 修復一種錯誤可能引入另一種錯誤，改稿必須重新審查 |
+| 第三稿 | 改用較中性的描述；紀錄中兩位 reviewer 都通過 | 通過是這一輪的審查結果，不等於客觀無誤 |
+| 規則迭代 | v2 將「保留條件對比」「不新增強調或定論語氣」列為具案例來源的規則 | 將單次回饋整理成下次可使用、可追查的行為要求 |
 
-## 流程圖｜Execution flow
+另一例是保留了 IC50 數值，卻刪掉它代表的抑制比例。這促成更具體的規則：**量化資訊要保留數字及判據意義。**
+
+[完整設計、訓練步驟與案例依據](docs/agent-design-training.md)
+
+## 三個角色如何分工？
+
+| 角色 | 任務 | 回傳什麼 |
+|---|---|---|
+| Writer／壓縮寫手 | 規劃保留內容、壓縮、依問題修訂；原始資料只讀 | 稿件、篇幅資料與修訂說明；v2 另要求計畫摘要及不確定處 |
+| Facts reviewer／事實審查 | 對照數字、實體、條件、否定與新增內容 | pass 或 revise；有問題就附來源位置與修改方向 |
+| Argument reviewer／論證審查 | 檢查因果、概念區分、主張與證據、限定範圍 | pass 或 revise；指出斷裂的論證與修復方向 |
+
+編排者負責派工、合併回饋與停止條件。兩位 reviewer 分開接收原文與同版稿件，不取得彼此意見或 writer 自評；任何一位要求修訂都退回。這是輸入隔離，不保證判斷沒有共同偏誤。
+
+## 訓練方式：改稿與改規則是兩個迴圈
 
 ```mermaid
 flowchart TD
-    S["Source 原文"] --> SNAP["Snapshot 原文快照與 SHA-256 指紋"]
-    SNAP --> W["Writer 壓縮或修訂稿件"]
-    W --> D["Draft 保存該輪稿件及字元數"]
-    D --> F["Facts reviewer 事實審查"]
-    D --> A["Argument reviewer 論證審查"]
-    F --> V{"Validate 格式、來源與稿件綁定"}
-    A --> V
-    V -->|失敗| E["error 保留紀錄並停止"]
-    V -->|通過| BOTH{"兩位都通過？"}
-    BOTH -->|是| R{"篇幅在容差內？"}
-    R -->|是| P["review_pass 審查通過"]
-    R -->|否| PW["review_pass_ratio_warning 篇幅警告"]
-    BOTH -->|否| LIMIT{"已達迭代上限？"}
-    LIMIT -->|是| U["unresolved 保留問題及最後稿件"]
-    LIMIT -->|否| FB["Feedback 合併具來源的修改要求"]
-    FB --> W
+    G[定義目標與評分規準] --> W[Writer 產生壓縮稿]
+    W --> F[事實 Reviewer]
+    W --> A[論證 Reviewer]
+    F --> J{合併當輪判斷}
+    A --> J
+    J -->|任一 revise 且未達上限| R[附來源與問題退回改稿]
+    R --> W
+    J -->|雙 pass 或達上限| E[保存結果與未解問題]
+    E --> L[整理失敗類型]
+    L --> V[修訂角色規則並保留舊版本]
+    V -. 下一輪驗證 .-> G
 ```
 
-兩位 reviewer 作為獨立任務並行執行，只收到同一份原文與當輪稿件，不取得彼此的意見或 writer 的自評。使用 handoff 時，Codex agents 由主線派工，Python 子程序只負責轉接與等待。這是輸入隔離，不保證模型之間沒有共同偏誤。圖中所有節點都對應 [core.py](runtime/core.py) 的實作。
+**改稿迴圈**解決這篇文章的問題；**規則迭代**由人與 agent 回看實驗紀錄後進行，將可重用的教訓寫入角色設定。現有 Python runtime 執行前者，沒有自動訓練或改寫角色規則。
 
-## 心智圖｜Responsibility map
+## 從 v1 到 v2 改了什麼？
+
+- **步驟明確化**：規劃 → 改寫 → 機械檢查 → 交付；以計畫摘要供回看。
+- **規則分層**：核心原則、附案例來源的失敗防範規則、格式與字元檢查。
+- **保留研究空間**：保存 v1、標記規則來源，讓後續能比較加入或移除規則的結果；對照實驗尚未完成。
 
 ```mermaid
 mindmap
-  root((文件壓縮與雙重審查))
-    Input 輸入
-      UTF-8 原文
-      Target 保留比例
-      Source hash 來源指紋
-    Orchestration 流程編排
-      Writer 寫稿與修訂
-      Parallel reviewers 並行審查
-      Iteration limit 迭代上限
-    Evaluation 評估
-      Facts 事實與條件
-      Argument 論證與限定
-      Ratio 字元比例
-      Binding 同版稿件綁定
-    Evidence 執行證據
-      Drafts 每輪稿件
-      Requests 任務輸入
-      Reviews 審查輸出
-      Run manifest 執行摘要
-    Verification 驗證
-      Synthetic demo 合成流程示範
-      Regression tests 回歸測試
-      Historical audit 歷史紀錄核對
-      Live quality 真實品質待驗證
+  root((Agent 設計與訓練))
+    任務定義
+      保留內容與論證
+      字元目標與容差
+    角色設計
+      Writer 寫與改
+      Facts 查事實
+      Argument 查論證
+    回饋設計
+      來源與問題定位
+      可執行的修改方向
+      同版重新審查
+    訓練迭代
+      試跑與分類錯誤
+      失敗轉為規則
+      舊版本作比較基礎
+    評估邊界
+      篇幅不等於品質
+      雙通過不等於金標準
+      版本增益待對照
 ```
 
-## 技術棧｜Technology stack
+## 已有成果與能支持的結論
 
-| English | 中文對照 | 在本專案的用途 | 狀態 |
-|---|---|---|---|
-| Python 3.10+ | Python 執行環境 | CLI、流程控制與資料驗證，使用標準函式庫 | 已實作 |
-| ThreadPoolExecutor | 執行緒池 | 同時派出兩份審查工作 | 已測試 |
-| subprocess / argv | 子程序／參數陣列 | 接任意遵守 JSON 契約的模型轉接器，不使用 shell 字串執行 | 已測試 |
-| JSON protocol | 結構化資料契約 | 傳遞稿件、審查意見與狀態 | 已實作 |
-| SHA-256 | 雜湊指紋 | 原文及稿件版本綁定；不等於防偽簽章或內容正確性 | 已測試 |
-| Chat Completions adapter | 對話 API 轉接器 | 選配模型連線，使用 model/messages 基本格式 | 本機 HTTP 契約測試；真實供應商待測 |
-| unittest | 自動化測試框架 | 停止條件、舊 verdict、錯誤、併行與輸入隔離 | 已測試 |
-| Mermaid | 文字式圖表 | GitHub 可編輯的流程圖與心智圖 | 已加入 |
-| Codex subagents / File handoff | 分工代理／檔案交接 | 移植既有角色規準，由主線派工、Python 驗證 | 單篇實測完成 |
-| Claude Code / Sonnet / Haiku | 歷史代理執行平台與模型 | 原有十篇實驗的 writer／reviewer 分工 | 歷史資料，非新版預設依賴 |
+| 材料 | 已有結果 | 證據範圍 |
+|---|---|---|
+| 十篇生醫文獻歷史實驗 | 留有稿件、審查與修訂紀錄；失敗被整理為 v2 規則 | 支持方法演進的案例；部分歷史字數與審查版本不一致 |
+| 一篇工程文章的 Codex 移植 | 19,377 → 13,143 字元，1 輪雙審通過 | 支持本次角色方法能跨平台執行；無控制組，不能歸因於特定規則 |
+| Python 流程 | 保存每輪稿件、綁定審查版本與控制停止條件 | 支持執行可追溯，不替代語意品質評估 |
 
-## 五分鐘試跑：不需要 API key
+Nio 定義壓縮目標、指定 writer 與雙 reviewer 分工、要求記錄修訂，並將工作推進為可反覆實證的 agent 訓練 lab。Claude 協作建立角色與歷史實驗，Codex 協作核對紀錄、移植執行與工程化。
 
-在此專案目錄執行：
+## 技術棧與深入閱讀
 
-```bash
-python3 runtime/demo.py runs/demo-01
-python3 -m unittest discover -s tests -v
-```
+| English | 中文 | 用途 |
+|---|---|---|
+| Agent instructions | 角色規則 | 定義職責、輸入輸出與評分規準 |
+| Claude Code / Codex agents | 代理執行環境 | 歷史實驗與後續方法移植；兩者結果分開記錄 |
+| Python / JSON | 流程控制與資料契約 | 派工轉接、合併審查與保存狀態 |
+| SHA-256 | 稿件指紋 | 防止沿用其他版本的審查結果 |
+| Markdown / Mermaid | 文件與圖表 | 呈現角色設計、訓練案例與流程 |
 
-示範是**固定的合成測試資料**：第一輪刻意遺漏條件並過度推論，兩位 reviewer 要求修訂，第二輪通過。它確實執行子程序和審查迴圈，但沒有呼叫 LLM，不能用來宣稱模型壓縮品質。
+- [Agent 設計與訓練案例](docs/agent-design-training.md)
+- [跨主題移植實測](docs/experiments/2026-10-08-openai-harness.md)
+- [歷史資料核對](docs/historical-audit.json)
+- [執行方式、完整流程與驗證範圍](docs/runtime-guide.md)
 
-預期摘要：`status=review_pass`、`rounds=2`、`execution_kind=synthetic`。重跑請使用新的輸出目錄，以免覆寫證據。
+原始私人對話、完整稿件與角色原檔留在本機；repo 提供方法整理、案例摘要與程式。不同 adapter 使用的提示不完全相同，不能把所有執行都當作同一版 agent 的成效。
 
-產物包含 `source.md`、各輪 `draft.md`、writer 與 reviewer 的 request/response、`candidate.md` 及 `run.json`。`candidate.md` 也可能是未通過的最後一稿，必須一起看 `run.json`。
-
-## 接上模型
-
-內附 [HTTP adapter](runtime/http_adapter.py)，以環境變數設定完整 API endpoint 與三個角色的模型：
-
-- `COMPRESSION_API_URL`：完整 `/v1/chat/completions` URL。
-- `COMPRESSION_MODEL_WRITER`、`COMPRESSION_MODEL_FACTS`、`COMPRESSION_MODEL_ARGUMENT`：由 endpoint 實際支援的 model ID。
-- `COMPRESSION_API_KEY`：若供應商需要驗證，由環境提供，不寫進設定檔。
-
-設定後，在專案目錄執行：
-
-```bash
-python3 runtime/cli.py your-document.md --out runs/live-01 \
-  --config runtime/config.example.json --target 0.65 --max-iterations 5
-```
-
-API 收到的是原文全文。選擇雲端 endpoint 即代表資料會送往該供應商；本工具不替你載入金鑰、不啟動本機模型。轉接器使用 [Chat Completions 基本訊息與回應格式](https://developers.openai.com/api/reference/resources/chat)，不支援所有供應商特有欄位；模型需能輸出指定 JSON 並容納全文。截斷、非 JSON 或 API 錯誤皆停止，不把片段當完成稿。
-
-也能用其他 CLI／API：只需提供三個可信的 command argv，遵守 [資料契約](docs/protocol.md)。角色可指定不同模型；相同模型的不同呼叫僅有輸入隔離，不代表認知獨立。
-
-## 研究設計與已有結果
-
-**背景與目標。** 2026 年 5 月從十篇腸腦軸文獻開始，原目標為保留 65% 字元（容差 ±3 個百分點），由事實與論證兩層 reviewer 檢查失真。
-
-**方法。** 歷史實驗以 Claude Code skill 派工，依 reviewer 意見修改，再將失敗類型整理成 writer v2 的 guards。2026 年 10 月此版把執行與驗證規則落成 Python；它是新的工程化版本，沒有假稱原封重現歷史 v2 提示詞。
-
-**結果。** 目前本機檔案合計 527,432 → 334,820 字元，保留 63.4812%，縮減 36.5188%。字元計算含 frontmatter、空白與換行；不是 token 節省率。加權總比率與各篇比率平均值不可混用。
-
-**討論。** 歷史 review log 的十篇都標示 pass，但 02、08、10 有字數不一致；02 還沿用前輪其中一位 reviewer 的 verdict。逐條紀錄共 10 個 issue，舊彙總正文寫成 9 個。缺少逐輪稿件 hash，無法追認現在的檔案就是當年被審查的版本。
-
-**結論。** 這批資料支持「曾執行壓縮、審查與修訂」以及「現存檔案有篇幅縮減」，尚不支持 100% 語意保真、v2 勝過 v1，或跨領域有效。詳見 [重新計算的核對結果](docs/historical-audit.json)。原稿、歷史紀錄與舊 metrics 保留在本機；不隨可攜程式包分享。
-
-## 2026-10-08：既有 Claude 壓縮大師實測
-
-沿用既有 Claude 壓縮大師與雙 reviewer 規準，由三個 Codex agents 實際執行。OpenAI 技術文章從 **19,377 縮至 13,143 字元（縮短 32.17%）**，兩位 reviewer 對同版稿件通過，完成 1 輪。這是單篇、無控制組的實測，不能當成普遍保真證據。詳見 [研究方法、結果與限制](docs/experiments/2026-10-08-openai-harness.md) 與 [結果 JSON](docs/experiments/2026-10-08-openai-harness-results.json)。
-
-## 驗收與下一個實驗
-
-- 已驗證：同版雙審查、單一 reviewer 否決、迭代上限、錯誤停止、歷史字數核對、子程序合成示範。
-- 已完成實測：三個 Codex agents 處理一篇工程文章，1 輪雙審查通過。
-- 待驗證：HTTP endpoint／模型相容性、多篇時延與成本、人工標註的失真率。
-- 下一個品質實驗：在未參與提示詞校正的文件上，比較單次壓縮與雙 reviewer 迴圈；固定模型、文件與參數，人工評分限定詞、數字意義、論證關係，記錄成本及失敗。尚未執行，不預填成效。
-
-[驗收範圍與變更說明](docs/validation.md) · [資料契約](docs/protocol.md)
+Author: Nio (Master) · Evidence review and editing: Codex · 2026-10-14
